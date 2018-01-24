@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using WebApplication1.Models;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace WebApplication1
 {
@@ -23,6 +26,21 @@ namespace WebApplication1
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options => {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience=true,
+                        ValidateLifetime=true,
+                        ValidateIssuerSigningKey=true,
+                        ValidIssuer="domain.com",
+                        ValidAudience="domain.com",
+                        IssuerSigningKey=new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["ApplicationSettings:SecurityKey"]))
+                    };
+                });
+                
+
             services.AddMvc();
 
 
@@ -41,6 +59,8 @@ namespace WebApplication1
             }
 
             app.UseStaticFiles();
+
+            app.UseAuthentication();
 
             app.UseMvcWithDefaultRoute();
         }
